@@ -15,10 +15,7 @@ def basic_sampler(seq, sample_len):
     If sample_len is greater than the length of the seq, the seq is returned.
     """
     seq_len = len(seq)
-    if seq_len > sample_len:
-        return seq[:sample_len]
-    else:
-        return seq
+    return seq[:sample_len] if seq_len > sample_len else seq
 
 def basic_rand_sampler(seq, sample_len):
     """
@@ -114,7 +111,7 @@ class RankSplitDataset(Dataset):
         with open(self.file_path, 'r', encoding='utf-8') as f:
             f.seek(self.rank_byte_offset) # move to the line for the specific rank
             lines = []
-            for i in range(self.rank_len): # load all the lines for the rank
+            for _ in range(self.rank_len):
                 line = f.readline()
                 if line != "":
                     lines.append(line)

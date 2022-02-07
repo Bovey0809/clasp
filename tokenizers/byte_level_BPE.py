@@ -3,6 +3,7 @@ Source: https://github.com/PaccMann/paccmann_proteomics/blob/master/scripts/
 
 """
 
+
 import argparse
 import glob
 import os
@@ -79,7 +80,7 @@ args = parser.parse_args()
 os.makedirs(args.out, exist_ok=True)
 
 #hardcoding it to the preprocessing script output for now
-file = args.path_data_dir + "/uniprot_sprot_100.csv"
+file = f'{args.path_data_dir}/uniprot_sprot_100.csv'
 if not file:
     logger.info(f'Input folder: {args.path_data_dir} is empty')
     exit(1)
@@ -92,7 +93,6 @@ if not (os.path.isfile(join(args.out, args.sequence_file))):
             aa_seq = line[0].split(';')[-1].strip(',')
             aa_seq = re.sub('\s+','', aa_seq)
             seq_data.append(aa_seq)
-
 #    with open(file, encoding='utf8') as f:
 #        lines = f.readlines()
 #        for line in lines[1:]:

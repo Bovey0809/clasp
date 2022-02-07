@@ -183,7 +183,7 @@ def train_ddp(args, model, optimizer, dl_train, dl_valid_id, dl_valid_ood, epoch
         model.eval()
 
         with torch.no_grad():
-            for j, b in enumerate(dl):
+            for b in dl:
                 text, text_mask, bioseq, bioseq_mask = b
 
                 text        = text.to(args.rank).squeeze(1)
@@ -248,9 +248,8 @@ def train_ddp(args, model, optimizer, dl_train, dl_valid_id, dl_valid_ood, epoch
         tp = time.time()
         for i, b in enumerate(dl_train):
 
-            if args.dryrun:
-                if i == 4:
-                    break
+            if args.dryrun and i == 4:
+                break
 
             optimizer.zero_grad()
 

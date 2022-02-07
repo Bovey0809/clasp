@@ -184,9 +184,8 @@ def train_ddp(args, model, optimizer, dl_train, epochs, logger=None, writer=None
         tp = time.time()
         for i, b in enumerate(dl):
 
-            if args.dryrun:
-                if i == 4:
-                    break
+            if args.dryrun and i == 4:
+                break
 
             optimizer.zero_grad()
 
@@ -220,10 +219,13 @@ def train_ddp(args, model, optimizer, dl_train, epochs, logger=None, writer=None
                 clip_grad_norm_(model.parameters(), 1.)
                 optimizer.step()
 
-            if args.rank == 0:
-                if (step % args.save_interval_step == 0) and (step != 0):
-                    path_save = os.path.join(args.path_model, f"{'_'.join(str(datetime.now()).split('.')[0].split(' '))}_step{step:08d}.pt")
-                    torch.save(ddp_model.state_dict(), path_save)
+            if (
+                args.rank == 0
+                and (step % args.save_interval_step == 0)
+                and (step != 0)
+            ):
+                path_save = os.path.join(args.path_model, f"{'_'.join(str(datetime.now()).split('.')[0].split(' '))}_step{step:08d}.pt")
+                torch.save(ddp_model.state_dict(), path_save)
 
             bt = time.time() - tp
             bt = torch.tensor(bt).to(args.rank)
@@ -237,10 +239,9 @@ def train_ddp(args, model, optimizer, dl_train, epochs, logger=None, writer=None
 
             tp = time.time()
 
-        if args.rank == 0:
-            if epoch % args.save_interval_epoch == 0:
-                path_save = os.path.join(args.path_model, f"{'_'.join(str(datetime.now()).split('.')[0].split(' '))}_epoch{epoch:03d}.pt")
-                torch.save(ddp_model.state_dict(), path_save)
+        if args.rank == 0 and epoch % args.save_interval_epoch == 0:
+            path_save = os.path.join(args.path_model, f"{'_'.join(str(datetime.now()).split('.')[0].split(' '))}_epoch{epoch:03d}.pt")
+            torch.save(ddp_model.state_dict(), path_save)
 
         time_epoch_end = time.time()
         et = time_epoch_end - time_epoch_start

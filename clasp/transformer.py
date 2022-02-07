@@ -123,10 +123,7 @@ class SparseAttention(Attention):
 
         q, k = self.apply_rel_pos_emb(q, k, rel_pos_emb)
 
-        key_pad_mask = None
-        if exists(mask):
-            key_pad_mask = ~mask
-
+        key_pad_mask = ~mask if exists(mask) else None
         out = self.attn_fn(q, k, v, key_padding_mask = key_pad_mask)
         out = rearrange(out, 'b h n d -> b n (h d)')
         out = self.to_out(out)
@@ -140,7 +137,7 @@ class LayerScale(nn.Module):
         super().__init__()
         if depth <= 18:
             init_eps = 0.1
-        elif depth > 18 and depth <= 24:
+        elif depth <= 24:
             init_eps = 1e-5
         else:
             init_eps = 1e-6
