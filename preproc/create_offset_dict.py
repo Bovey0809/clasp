@@ -13,8 +13,7 @@ def get_args():
     parser.add_argument("-o", type=str,
                         help="output: path preprocessed offset dictionary json file for training")
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

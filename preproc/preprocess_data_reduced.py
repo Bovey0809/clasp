@@ -13,13 +13,13 @@ urls_download = ["https://ftp.uniprot.org/pub/databases/uniprot/current_release/
 
 print(f"{datetime.now()} - Start downloading files.")
 path_current_dir = os.path.abspath(os.path.dirname(__file__))
-path_data_dir  = path_current_dir.split("/preproc")[0]+"/data"
+path_data_dir = f'{path_current_dir.split("/preproc")[0]}/data'
 paths_raw_data = []
 for url in urls_download:
     print(f"{datetime.now()} - Start downloading from: {url}")
     Path(path_data_dir).mkdir(exist_ok=True)
     subprocess.run(["wget", url, "-P", path_data_dir])
-    paths_raw_data.append(path_data_dir+"/"+url.split("/")[-1])
+    paths_raw_data.append(f'{path_data_dir}/{url.split("/")[-1]}')
     print(f"{datetime.now()} - Download finished.")
 
 
@@ -37,41 +37,41 @@ print(f"{datetime.now()} - Preprocessing files and saving to csv.")
 # Raw data setup see user manual: https://web.expasy.org/docs/userman.html
 linetype_conversion = {
     "ID": "id",
-    "AC": "accn", # accession number
+    "AC": "accn",
     "DT": "date",
-    "DE": "desc", # DEscription
-    "GN": "gene", # Gene Name
-    "OS": "spec", # Organism Species
-    "OG": "orga", # OrGanelle
-    "OC": "clas", # Organism Classification
-    "OX": "taxo", # Organism taxonomy cross-reference
-    "OH": "host", # Organism Host
-    "RN": "refn", # Reference Number
-    "RP": "refp", # Reference Position
-    "RC": "refc", # Reference Comment
-    "RX": "refx", # Reference cross-reference
-    "RG": "refg", # Reference Group
-    "RA": "refa", # Reference Author
-    "RT": "reft", # Reference Title
-    "RL": "refl", # Reference Location
-    "CC": "text", # free text comments
-    "DR": "xdb", # Database cross-Reference
-    "FT": "xns", # Cross-references to the nucleotide sequence database # RECHECK
-    "PE": "exist", # Protein existence
-    "KW": "kw", # KeyWord
-    "FT": "ft", # Feature Table
-    "SQ": "seqh", # SeQuence header)
+    "DE": "desc",
+    "GN": "gene",
+    "OS": "spec",
+    "OG": "orga",
+    "OC": "clas",
+    "OX": "taxo",
+    "OH": "host",
+    "RN": "refn",
+    "RP": "refp",
+    "RC": "refc",
+    "RX": "refx",
+    "RG": "refg",
+    "RA": "refa",
+    "RT": "reft",
+    "RL": "refl",
+    "CC": "text",
+    "DR": "xdb",
+    "PE": "exist",
+    "KW": "kw",
+    "FT": "ft",
+    "SQ": "seqh",
     "  ": "seq",
 }
+
 
 preprocessing_fields = ["id","accn","date","desc","gene","spec","orga","clas","taxo","host","refn", "refp", "refc", "refx", "refg", "refa", "reft", "refl", "text","xdb","ft","exist","kw","seqh","seq"]
 
 def get_csv(path, fields):
-    path_out = path.split(".")[0]+".csv"
+    path_out = f'{path.split(".")[0]}.csv'
     print(f"{datetime.now()} - Processing: {path}")
     print(f"{datetime.now()} - Saving to:  {path_out}")
     print("Processing file line:")
-    
+
     i = 0
     data = {k: "" for k in fields}
     with open(path, 'r') as rf, open(path_out, 'w') as wf:
@@ -79,13 +79,13 @@ def get_csv(path, fields):
             if i == 0: # write header to csv
                 header = ",".join(fields)+"\n"
                 wf.write(header)
-                
+
             if i % 1_000_000 == 0:
                 print(i, end=", ")
             i += 1
-            
+
             rline = rf.readline()
-            
+
             if rline.startswith("CC   ----") or \
                rline.startswith("CC   Copy") or \
                rline.startswith("CC   Dist") or \
@@ -101,27 +101,27 @@ def get_csv(path, fields):
             elif rline == "": # EOF is empty string
                 print(f"\n{datetime.now()} - Processing complete.")
                 break
-                
+
             elif rline.startswith("//"): # end of entry, save line to csv file
-                for key in data.keys():    
+                for key in data:    
 
                     data[key] = re.sub(r"\s*{.*}\s*", " ", data[key]) # Remove curly braces incl. their content
 
                     if key == "seq":
                         data[key] = data[key].replace(" ","") # remove spaces in AA sequence
 
-                    if key == "seqh":
+                    elif key == "seqh":
                         data[key] = ";".join(data[key].split(";")[:-2]) # Remove CRC64
 
-                    
+
                 wline = ",".join([x.replace(",",";") for x in data.values()])+"\n"
                 wf.write(wline)
                 data = {k: "" for k in fields} # create new empty data dict
                 continue
-            
+
             key = linetype_conversion[rline[:2]] # get line key
             content = " ".join(rline[5:].split()) # get line content
-            data[key] += content if data[key] == "" else " "+content
+            data[key] += content if data[key] == "" else f' {content}'
     return path_out
 
 paths_csv = []
@@ -185,7 +185,7 @@ for path in paths_data:
 
 
 print(f"{datetime.now()} - Merging preprocessed csv files into one csv file.")
-path_csv_full = path_data_dir+"/uniprot_full.csv"
+path_csv_full = f'{path_data_dir}/uniprot_full.csv'
 subprocess.run(["cat", paths_csv[0], f"<(tail +2 {paths_csv[1]})", ">", path_csv_full])
 print(f"{datetime.now()} - Merged files saved to: {path_csv_full}")
 

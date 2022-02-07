@@ -185,7 +185,7 @@ def train_ddp(args, model, optimizer, dl_train, dl_valid_id, dl_valid_ood, epoch
         model.eval()
 
         with torch.no_grad():
-            for j, b in enumerate(dl):
+            for b in dl:
                 text, text_mask, bioseq, bioseq_mask = b
 
                 text        = text.to(args.rank).squeeze(1)
@@ -254,9 +254,8 @@ def train_ddp(args, model, optimizer, dl_train, dl_valid_id, dl_valid_ood, epoch
         tp = time.time()
         for i, b in enumerate(dl_train):
 
-            if args.dryrun:
-                if i == 4:
-                    break
+            if args.dryrun and i == 4:
+                break
 
             optimizer.zero_grad()
 
@@ -392,7 +391,7 @@ def trainer(rank, world_size):
     args = get_args()
     args.rank = rank
     args.world_size = world_size
-    
+
     # setup paths
     args.path_log = os.path.join(args.path_results, args.id)
     args.path_tb = os.path.join(args.path_log,"tb")
@@ -451,12 +450,15 @@ def trainer(rank, world_size):
                            bioseq_tok=bioseq_tok_rand)
     logger.info(f"{datetime.now()} rank: {args.rank} created train dataset")
 
-    dl_train = DataLoader(ds_train,
-                          batch_size=args.bs,
-                          shuffle=True if not(args.dryrun) else False,
-                          num_workers=args.numw,
-                          pin_memory=True,
-                          drop_last=True)
+    dl_train = DataLoader(
+        ds_train,
+        batch_size=args.bs,
+        shuffle=not (args.dryrun),
+        num_workers=args.numw,
+        pin_memory=True,
+        drop_last=True,
+    )
+
     logger.info(f"{datetime.now()} rank: {args.rank} created train dataloader with length {len(dl_train)}")
 
     ds_valid_id = CLASPRankSplitDataset(file_path=args.path_data_valid_id,
